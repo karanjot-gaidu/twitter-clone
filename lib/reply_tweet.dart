@@ -2,19 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:twitter/tweet_model.dart';
 
 
-class CreateTweetPage extends StatefulWidget {
-  const CreateTweetPage({Key? key}) : super(key: key);
+class ReplyPage extends StatefulWidget {
+  const ReplyPage({Key? key}) : super(key: key);
 
   @override
-  _CreateTweetPageState createState() => _CreateTweetPageState();
+  _ReplyPageState createState() => _ReplyPageState();
 }
 
-class _CreateTweetPageState extends State<CreateTweetPage> {
+class _ReplyPageState extends State<ReplyPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _userLongNameController = TextEditingController();
   final TextEditingController _userShortNameController = TextEditingController();
-  final TextEditingController _tweetTextController = TextEditingController();
-  final TextEditingController _imageURLController = TextEditingController();
+  final TextEditingController _tweetReplyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Set initial value for the text field
+    _userLongNameController.text = 'Dummy Name';
+    _userShortNameController.text = 'Dummy';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +57,8 @@ class _CreateTweetPageState extends State<CreateTweetPage> {
                 },
               ),
               TextFormField(
-                controller: _tweetTextController,
-                decoration: const InputDecoration(labelText: 'Tweet Text'),
+                controller: _tweetReplyController,
+                decoration: const InputDecoration(labelText: 'Write your Reply'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your tweet';
@@ -58,10 +66,7 @@ class _CreateTweetPageState extends State<CreateTweetPage> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _imageURLController,
-                decoration: const InputDecoration(labelText: 'Image URL (optional)'),
-              ),
+
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -71,15 +76,15 @@ class _CreateTweetPageState extends State<CreateTweetPage> {
                         userShortName: _userShortNameController.text,
                         userLongName: _userLongNameController.text,
                         time: DateTime.now(),
-                        description: _tweetTextController.text,
-                        imageURL: (_imageURLController.text != "") ? _imageURLController.text : null,
+                        description: _tweetReplyController.text,
+                        imageURL: null,
                         numComments: 0,
                         numRetweets: 0,
                         numLikes: 0);
                     Navigator.pop(context, tweet);
                   }
                 },
-                child: const Text('Post Tweet'),
+                child: const Text('Post Reply'),
               ),
             ],
           ),

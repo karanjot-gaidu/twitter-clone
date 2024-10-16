@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:twitter/reply_tweet.dart';
+import 'package:twitter/tweet_model.dart';
 import 'create_tweet_page.dart';
 import 'package:intl/intl.dart';
 
@@ -78,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
       numComments: 120,
       numRetweets: 300,
       numLikes: 450,
+      onHide: () {},
     ),
     TweetWidget(
       profileURL: 'https://cdn-icons-png.flaticon.com/512/9203/9203764.png',
@@ -91,11 +94,47 @@ class _MyHomePageState extends State<MyHomePage> {
       numComments: 250,
       numRetweets: 500,
       numLikes: 750,
+      onHide: () {},
     ),
     // Add more hardcoded tweets if necessary
   ];
 
-  final List<TweetWidget> _tweets = [];
+  List<Tweet> _tweets = [];
+
+  void initState() {
+    super.initState();
+    // Initialize with some example tweets
+    _tweets = [
+      Tweet(
+        profileURL: 'https://cdn-icons-png.flaticon.com/512/9203/9203764.png',
+        userShortName: '@NatGeo',
+        userLongName: 'National Geographic',
+        time: DateTime.now().subtract(const Duration(hours: 4)),
+        description:
+        'A European jackal dives at a Eurasian Magpie who got too close to the jackal\'s recent catch in this photo by Your Shot Photographer Sergey Zlatkov',
+        imageURL:
+        'https://images.pexels.com/photos/17473766/pexels-photo-17473766/free-photo-of-a-jackal-on-a-grass-field.jpeg',
+        numComments: 120,
+        numRetweets: 300,
+        numLikes: 450,
+      ),
+      Tweet(
+        profileURL: 'https://cdn-icons-png.flaticon.com/512/9203/9203764.png',
+        userShortName: '@TheRealNASA',
+        userLongName: 'NASA',
+        time: DateTime.now().subtract(const Duration(hours: 2)),
+        description:
+        'A stunning view of Earth from space, captured during the latest mission! 🌍✨ #EarthDay',
+        imageURL:
+        'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg',
+        numComments: 250,
+        numRetweets: 500,
+        numLikes: 750,
+      )
+    ];
+  }
+
+
 
   // Method to navigate to CreateTweetPage and await result
   Future<void> _navigateToCreateTweetPage() async {
@@ -107,17 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (result != null) {
       // If result is not null, add it to the list of tweets
       setState(() {
-        _tweets.add(TweetWidget(
-          profileURL: result.profileURL,
-          userShortName: result.userShortName,
-          userLongName: result.userLongName,
-          time: result.time, // Format as desired
-          description: result.description,
-          imageURL: result.imageURL,
-          numComments: result.numComments,
-          numRetweets: result.numRetweets,
-          numLikes: result.numLikes,
-        ));
+        _tweets.add(result);
       });
     }
   }
@@ -140,13 +169,26 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(8.0),
-        children: [
-          // const Tweet(),
-          ..._hardcodedTweets,
-          ..._tweets,
-        ],
+      body: ListView.builder(
+        itemCount: _tweets.length,
+        itemBuilder: (context, index) {
+          return TweetWidget(
+            profileURL: _tweets[index].profileURL,
+            userShortName: _tweets[index].userShortName,
+            userLongName: _tweets[index].userLongName,
+            time: _tweets[index].time,
+            description: _tweets[index].description,
+            imageURL: _tweets[index].imageURL,
+            numComments: _tweets[index].numComments,
+            numRetweets: _tweets[index].numRetweets,
+            numLikes: _tweets[index].numLikes,
+            onHide: () {
+              setState(() {
+                _tweets.removeAt(index); // Remove the tweet from the list
+              });
+            },
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToCreateTweetPage,
@@ -178,6 +220,7 @@ class TweetEg extends StatelessWidget {
           numComments: 120,
           numRetweets: 300,
           numLikes: 450,
+          onHide: () {},
         ),
 
         TweetWidget(
@@ -190,6 +233,7 @@ class TweetEg extends StatelessWidget {
           numComments: 250,
           numRetweets: 500,
           numLikes: 750,
+          onHide: () {},
         ),
 
         TweetWidget(
@@ -202,6 +246,7 @@ class TweetEg extends StatelessWidget {
           numComments: 150,
           numRetweets: 300,
           numLikes: 400,
+          onHide: () {},
         ),
 
         TweetWidget(
@@ -214,6 +259,7 @@ class TweetEg extends StatelessWidget {
           numComments: 90,
           numRetweets: 200,
           numLikes: 350,
+          onHide: () {},
         ),
 
         TweetWidget(
@@ -226,6 +272,7 @@ class TweetEg extends StatelessWidget {
           numComments: 120,
           numRetweets: 280,
           numLikes: 600,
+          onHide: () {},
         ),
 
         TweetWidget(
@@ -238,6 +285,7 @@ class TweetEg extends StatelessWidget {
           numComments: 75,
           numRetweets: 150,
           numLikes: 200,
+          onHide: () {},
         ),
 
       ],
@@ -251,23 +299,25 @@ class TweetWidget extends StatefulWidget {
   final String userLongName;
   final DateTime time;
   final String description;
-  final String imageURL;
+  final String? imageURL;
   final int numComments;
   final int numRetweets;
   final int numLikes;
+  final VoidCallback onHide;  // Callback to notify the parent to hide the tweet
 
   const TweetWidget({
-    super.key,
+    Key? key,
     required this.profileURL,
     required this.userShortName,
     required this.userLongName,
     required this.time,
     required this.description,
-    required this.imageURL,
+    this.imageURL,
     required this.numComments,
     required this.numRetweets,
     required this.numLikes,
-  });
+    required this.onHide,  // We pass a callback to hide the tweet
+  }): super(key: key);
 
   @override
   _TweetWidgetState createState() => _TweetWidgetState();
@@ -278,6 +328,7 @@ class _TweetWidgetState extends State<TweetWidget> {
   late bool _isRetweeted;
   late int _likes;
   late int _retweets;
+  late List<Tweet> _replies;
 
   @override
   void initState() {
@@ -286,8 +337,24 @@ class _TweetWidgetState extends State<TweetWidget> {
     _isRetweeted = false;
     _likes = widget.numLikes;
     _retweets = widget.numRetweets;
+    _replies = [];
   }
 
+  Future<void> _navigateToReplyPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReplyPage()),
+    );
+
+    if (result != null) {
+      // Add the reply to the list and increment the number of comments
+      setState(() {
+        _replies.add(result);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final TextStyle userIDTextStyle = TextStyle(
       fontSize: 15,
@@ -326,7 +393,26 @@ class _TweetWidgetState extends State<TweetWidget> {
                   Text(widget.userShortName, style: userIDTextStyle),
                   Text(" • ", style: userIDTextStyle), // Dot between user and time
                   Text(formattedTime, style: userIDTextStyle),
-                  const Icon(Icons.expand_more, color: Colors.grey, size: 15,)
+                  PopupMenuButton<String>(
+                    onSelected: (String value) {
+                      if (value == 'hide') {
+                        // Logic to hide the tweet
+                        setState(() {
+                          // Using a callback from parent widget to remove the tweet
+                          widget.onHide(); // Notify parent to hide this tweet
+                        });
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        const PopupMenuItem(
+                          value: 'hide',
+                          child: Text('Hide Tweet'),
+                        ),
+                      ];
+                    },
+                    icon: const Icon(Icons.expand_more, color: Colors.grey, size: 15),
+                  ),
                 ],
               ),
 
@@ -340,20 +426,20 @@ class _TweetWidgetState extends State<TweetWidget> {
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                  child: Image(
-                    image: NetworkImage(
-                      widget.imageURL,
+              if (widget.imageURL != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+                    child: Image.network(
+                      widget.imageURL!,
+                      height: 200, // Set a fixed height for the image
+                      width: double.infinity, // Take the full width
+                      fit: BoxFit.cover, // Ensures the image scales properly
                     ),
-                    height: 200, // Set a fixed height for the image
-                    width: double.infinity, // Take the full width
-                    fit: BoxFit.cover, // Ensures the image scales properly
                   ),
                 ),
-              ),
+              ],
 
               Padding(
                 padding: const EdgeInsets.only(top: 10.0),
@@ -362,8 +448,11 @@ class _TweetWidgetState extends State<TweetWidget> {
                     children: <Widget>[
                       Row(
                         children: [
-                          const Icon(Icons.chat_bubble_outline_rounded, color: Colors.grey, size: 15),
-                          Text(widget.numComments.toString(), style: userIDTextStyle),
+                          IconButton(
+                            onPressed: _navigateToReplyPage, // Open reply page
+                            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.grey, size: 15),
+                          ),
+                          Text((_replies.length + widget.numComments).toString(), style: userIDTextStyle),
                         ],
                       ),
 
@@ -414,6 +503,33 @@ class _TweetWidgetState extends State<TweetWidget> {
                     ]
                 ),
               ),
+              if (_replies.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _replies.map((reply) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: TweetWidget(
+                          profileURL: reply.profileURL,
+                          userShortName: reply.userShortName,
+                          userLongName: reply.userLongName,
+                          time: reply.time,
+                          description: reply.description,
+                          imageURL: reply.imageURL,
+                          numComments: reply.numComments,
+                          numRetweets: reply.numRetweets,
+                          numLikes: reply.numLikes,
+                          onHide: () {
+                            // Add your logic to handle hiding the tweet if needed
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+
 
               const SizedBox(height: 20,)
             ],

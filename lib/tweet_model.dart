@@ -4,7 +4,7 @@ class Tweet {
   final String userLongName;
   final DateTime time;
   final String description;
-  final String imageURL;
+  final String? imageURL;
   final int numComments;
   final int numRetweets;
   final int numLikes;
@@ -15,7 +15,7 @@ class Tweet {
     required this.userLongName,
     required this.time,
     required this.description,
-    required this.imageURL,
+    this.imageURL,
     required this.numComments,
     required this.numRetweets,
     required this.numLikes,

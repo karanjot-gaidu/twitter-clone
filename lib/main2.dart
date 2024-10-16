@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:twitter/reply_tweet.dart';
 import 'package:twitter/tweet_model.dart';
 import 'create_tweet_page.dart';
 import 'package:intl/intl.dart';
@@ -298,7 +299,7 @@ class TweetWidget extends StatefulWidget {
   final String userLongName;
   final DateTime time;
   final String description;
-  final String imageURL;
+  final String? imageURL;
   final int numComments;
   final int numRetweets;
   final int numLikes;
@@ -311,7 +312,7 @@ class TweetWidget extends StatefulWidget {
     required this.userLongName,
     required this.time,
     required this.description,
-    required this.imageURL,
+    this.imageURL,
     required this.numComments,
     required this.numRetweets,
     required this.numLikes,
@@ -327,6 +328,7 @@ class _TweetWidgetState extends State<TweetWidget> {
   late bool _isRetweeted;
   late int _likes;
   late int _retweets;
+  late List<Tweet> _replies;
 
   @override
   void initState() {
@@ -335,8 +337,24 @@ class _TweetWidgetState extends State<TweetWidget> {
     _isRetweeted = false;
     _likes = widget.numLikes;
     _retweets = widget.numRetweets;
+    _replies = [];
   }
 
+  Future<void> _navigateToReplyPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReplyPage()),
+    );
+
+    if (result != null) {
+      // Add the reply to the list and increment the number of comments
+      setState(() {
+        _replies.add(result);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final TextStyle userIDTextStyle = TextStyle(
       fontSize: 15,
@@ -408,20 +426,20 @@ class _TweetWidgetState extends State<TweetWidget> {
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                  child: Image(
-                    image: NetworkImage(
-                      widget.imageURL,
+              if (widget.imageURL != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+                    child: Image.network(
+                      widget.imageURL!,
+                      height: 200, // Set a fixed height for the image
+                      width: double.infinity, // Take the full width
+                      fit: BoxFit.cover, // Ensures the image scales properly
                     ),
-                    height: 200, // Set a fixed height for the image
-                    width: double.infinity, // Take the full width
-                    fit: BoxFit.cover, // Ensures the image scales properly
                   ),
                 ),
-              ),
+              ],
 
               Padding(
                 padding: const EdgeInsets.only(top: 10.0),
@@ -430,8 +448,11 @@ class _TweetWidgetState extends State<TweetWidget> {
                     children: <Widget>[
                       Row(
                         children: [
-                          const Icon(Icons.chat_bubble_outline_rounded, color: Colors.grey, size: 15),
-                          Text(widget.numComments.toString(), style: userIDTextStyle),
+                          IconButton(
+                            onPressed: _navigateToReplyPage, // Open reply page
+                            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.grey, size: 15),
+                          ),
+                          Text((_replies.length + widget.numComments).toString(), style: userIDTextStyle),
                         ],
                       ),
 
@@ -482,6 +503,33 @@ class _TweetWidgetState extends State<TweetWidget> {
                     ]
                 ),
               ),
+              if (_replies.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _replies.map((reply) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: TweetWidget(
+                          profileURL: reply.profileURL,
+                          userShortName: reply.userShortName,
+                          userLongName: reply.userLongName,
+                          time: reply.time,
+                          description: reply.description,
+                          imageURL: reply.imageURL,
+                          numComments: reply.numComments,
+                          numRetweets: reply.numRetweets,
+                          numLikes: reply.numLikes,
+                          onHide: () {
+                            // Add your logic to handle hiding the tweet if needed
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+
 
               const SizedBox(height: 20,)
             ],
