@@ -8,6 +8,7 @@ class Tweet {
   final int numComments;
   final int numRetweets;
   final int numLikes;
+  bool isBookmarked;
 
   Tweet({
     required this.profileURL,
@@ -19,5 +20,6 @@ class Tweet {
     required this.numComments,
     required this.numRetweets,
     required this.numLikes,
+    this.isBookmarked = false,
   });
 }

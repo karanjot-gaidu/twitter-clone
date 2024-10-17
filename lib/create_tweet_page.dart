@@ -75,7 +75,8 @@ class _CreateTweetPageState extends State<CreateTweetPage> {
                         imageURL: (_imageURLController.text != "") ? _imageURLController.text : null,
                         numComments: 0,
                         numRetweets: 0,
-                        numLikes: 0);
+                        numLikes: 0,
+                    );
                     Navigator.pop(context, tweet);
                   }
                 },

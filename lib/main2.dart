@@ -67,40 +67,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  final List<TweetWidget> _hardcodedTweets = [
-    TweetWidget(
-      profileURL: 'https://cdn-icons-png.flaticon.com/512/9203/9203764.png',
-      userShortName: '@NatGeo',
-      userLongName: 'National Geographic',
-      time: DateTime.now().subtract(const Duration(hours: 4)),
-      description:
-      'A European jackal dives at a Eurasian Magpie who got too close to the jackal\'s recent catch in this photo by Your Shot Photographer Sergey Zlatkov',
-      imageURL:
-      'https://images.pexels.com/photos/17473766/pexels-photo-17473766/free-photo-of-a-jackal-on-a-grass-field.jpeg',
-      numComments: 120,
-      numRetweets: 300,
-      numLikes: 450,
-      onHide: () {},
-    ),
-    TweetWidget(
-      profileURL: 'https://cdn-icons-png.flaticon.com/512/9203/9203764.png',
-      userShortName: '@TheRealNASA',
-      userLongName: 'NASA',
-      time: DateTime.now().subtract(const Duration(hours: 2)),
-      description:
-      'A stunning view of Earth from space, captured during the latest mission! 🌍✨ #EarthDay',
-      imageURL:
-      'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg',
-      numComments: 250,
-      numRetweets: 500,
-      numLikes: 750,
-      onHide: () {},
-    ),
-    // Add more hardcoded tweets if necessary
-  ];
-
   List<Tweet> _tweets = [];
 
+  @override
   void initState() {
     super.initState();
     // Initialize with some example tweets
@@ -159,6 +128,20 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
+    print("Before sorting: ${_tweets.map((tweet) => tweet.userShortName).toList()}");
+    print("Before sorting: ${_tweets.map((tweet) => tweet.isBookmarked).toList()}");
+    _tweets.sort((a, b) {
+      // First, sort by bookmark status (bookmarked tweets first)
+      if (a.isBookmarked && !b.isBookmarked) return -1; // a comes before b
+      if (!a.isBookmarked && b.isBookmarked) return 1;  // b comes before a
+      // Then, sort by time (most recent first)
+      return b.time.compareTo(a.time); // Sort by time in descending order
+    });
+    print("After sorting: ${_tweets.map((tweet) => tweet.userShortName).toList()}");
+    print("After sorting: ${_tweets.map((tweet) => tweet.isBookmarked).toList()}");
+
+
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -168,6 +151,24 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+
+        // ** for a button on the app bar at the top **
+
+        // actions: [
+        //   Container(
+        //     margin: const EdgeInsets.only(right: 10), // Adjust right margin if needed
+        //     decoration: BoxDecoration(
+        //       color: Colors.black, // Background color of the button
+        //       shape: BoxShape.rectangle,
+        //       borderRadius: BorderRadius.circular(12),// Circular shape
+        //     ),
+        //     child: IconButton(
+        //       onPressed: _navigateToCreateTweetPage,
+        //       icon: Icon(Icons.add),
+        //       color: Colors.white, // Icon color
+        //     ),
+        //   ),
+        // ],
       ),
       body: ListView.builder(
         itemCount: _tweets.length,
@@ -187,17 +188,53 @@ class _MyHomePageState extends State<MyHomePage> {
                 _tweets.removeAt(index); // Remove the tweet from the list
               });
             },
+            onBookmarked: () {
+              setState(() {
+                // Update the isBookmarked status in a new Tweet object
+                _tweets[index] = Tweet(
+                  profileURL: _tweets[index].profileURL,
+                  userShortName: _tweets[index].userShortName,
+                  userLongName: _tweets[index].userLongName,
+                  time: _tweets[index].time,
+                  description: _tweets[index].description,
+                  imageURL: _tweets[index].imageURL,
+                  numComments: _tweets[index].numComments,
+                  numRetweets: _tweets[index].numRetweets,
+                  numLikes: _tweets[index].numLikes,
+                  isBookmarked: !_tweets[index].isBookmarked, // Toggle bookmark
+                );
+
+                // Re-sort the list after the bookmark status is updated
+                _tweets.sort((a, b) {
+                  if (a.isBookmarked && !b.isBookmarked) return -1; // a comes first
+                  if (!a.isBookmarked && b.isBookmarked) return 1;  // b comes first
+                  return b.time.compareTo(a.time); // Sort by time if bookmarks are equal
+                });
+              });
+            }
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToCreateTweetPage,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add,),
       ),
 
       // Position the button at the bottom-right
+      // floatingActionButtonLocation: _CustomFloatingActionButtonLocation(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
     );
+  }
+}
+
+class _CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // Set the X and Y coordinates to position the FAB in the top-right corner
+    final double x = scaffoldGeometry.scaffoldSize.width - kFloatingActionButtonMargin - scaffoldGeometry.minInsets.right - scaffoldGeometry.floatingActionButtonSize.width;
+    final double y = kFloatingActionButtonMargin + scaffoldGeometry.contentTop; // Use contentTop instead of appBarMaxHeight
+    return Offset(x, y);
   }
 }
 
@@ -221,6 +258,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 300,
           numLikes: 450,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
         TweetWidget(
@@ -234,6 +272,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 500,
           numLikes: 750,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
         TweetWidget(
@@ -247,6 +286,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 300,
           numLikes: 400,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
         TweetWidget(
@@ -260,6 +300,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 200,
           numLikes: 350,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
         TweetWidget(
@@ -273,6 +314,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 280,
           numLikes: 600,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
         TweetWidget(
@@ -286,6 +328,7 @@ class TweetEg extends StatelessWidget {
           numRetweets: 150,
           numLikes: 200,
           onHide: () {},
+          onBookmarked: () {},
         ),
 
       ],
@@ -304,8 +347,10 @@ class TweetWidget extends StatefulWidget {
   final int numRetweets;
   final int numLikes;
   final VoidCallback onHide;  // Callback to notify the parent to hide the tweet
+  bool isBookmarked;
+  final VoidCallback onBookmarked;
 
-  const TweetWidget({
+  TweetWidget({
     Key? key,
     required this.profileURL,
     required this.userShortName,
@@ -317,6 +362,8 @@ class TweetWidget extends StatefulWidget {
     required this.numRetweets,
     required this.numLikes,
     required this.onHide,  // We pass a callback to hide the tweet
+    required this.onBookmarked,
+    this.isBookmarked = false,
   }): super(key: key);
 
   @override
@@ -329,6 +376,7 @@ class _TweetWidgetState extends State<TweetWidget> {
   late int _likes;
   late int _retweets;
   late List<Tweet> _replies;
+  late bool _isBookmarked;
 
   @override
   void initState() {
@@ -338,6 +386,15 @@ class _TweetWidgetState extends State<TweetWidget> {
     _likes = widget.numLikes;
     _retweets = widget.numRetweets;
     _replies = [];
+    _isBookmarked = widget.isBookmarked;
+  }
+
+  void _toggleBookmark() {
+    setState(() {
+      _isBookmarked = !_isBookmarked;
+    });
+    // Notify parent to re-sort tweets when bookmark status changes
+    widget.onBookmarked();
   }
 
   Future<void> _navigateToReplyPage() async {
@@ -494,9 +551,19 @@ class _TweetWidgetState extends State<TweetWidget> {
                         ],
                       ),
 
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.bookmark_border_rounded, color: Colors.grey, size: 15,)
+                          IconButton(
+                            onPressed: () {
+                              _isBookmarked = !_isBookmarked;
+                              widget.onBookmarked();
+                            },
+                            icon: Icon(
+                              _isBookmarked ? Icons.bookmark : Icons.bookmark_border, // Highlighted bookmark if true
+                              color: _isBookmarked ? Colors.blue : Colors.grey,
+                              size: 15,
+                            ),
+                          ),
                         ],
                       )
 
@@ -521,9 +588,8 @@ class _TweetWidgetState extends State<TweetWidget> {
                           numComments: reply.numComments,
                           numRetweets: reply.numRetweets,
                           numLikes: reply.numLikes,
-                          onHide: () {
-                            // Add your logic to handle hiding the tweet if needed
-                          },
+                          onHide: () {},
+                          onBookmarked: () {},
                         ),
                       );
                     }).toList(),
